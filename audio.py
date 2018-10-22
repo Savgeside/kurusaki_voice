@@ -62,8 +62,11 @@ async def on_ready():
 @bot.command(pass_context=True)
 async def join(ctx):
     channel = ctx.message.author.voice.voice_channel
+    if channel is None:
+      bot.say(":x: | You need to join a voice channel first bud!")
     await bot.join_voice_channel(channel)
     in_voice.append(ctx.message.server.id)
+    await bot.say(":musical_note: I have joined and I am ready to play some music for you!")
 
 
 async def player_in(con):  # After function for music
@@ -77,7 +80,7 @@ async def player_in(con):  # After function for music
         if len(songs[con.message.server.id]) != 0:  # If queue is not empty
             # if audio is not playing and there is a queue
             songs[con.message.server.id][0].start()  # start it
-            await bot.send_message(con.message.channel, 'Now queueed')
+            await bot.send_message(con.message.channel, ':musical_note: Now playing {}'.format(songs.title))
             del songs[con.message.server.id][0]  # delete list afterwards
     except:
         pass
@@ -115,27 +118,25 @@ async def play(ctx, *,url):
             await bot.say("Can not play live audio yet.")
         elif players[ctx.message.server.id].is_live == False:
             player.start()
-            await bot.say("Now playing audio")
+            await bot.say(f":youtube: Searching :mag_right: ``{url}")
+            await bot.say(f":musical_note: Now playing ``{player.title}``")
             playing[ctx.message.server.id] = True
 
 
 
 @bot.command(pass_context=True)
 async def queue(con):
-    await bot.say("There are currently {} audios in queue".format(len(songs)))
+    await bot.say("There are currently ``{}`` audios in queue".format(songs))
 
 @bot.command(pass_context=True)
 async def pause(ctx):
     players[ctx.message.server.id].pause()
+    await bot.say(":musical_note: I have now paused the audio")
 
 @bot.command(pass_context=True)
 async def resume(ctx):
     players[ctx.message.server.id].resume()
-          
-@bot.command(pass_context=True)
-async def volume(ctx, vol:float):
-    volu = float(vol)
-    players[ctx.message.server.id].volume=volu
+    await bot.say(":musical_note: I have now resumed the audio")
 
 
 @bot.command(pass_context=True)
@@ -146,8 +147,11 @@ async def skip(con): #skipping songs?
     
 @bot.command(pass_context=True)
 async def stop(con):
+  if ctx.message.author.server_permissions.manage_channels:
     players[con.message.server.id].stop()
     songs.clear()
+  else:
+    await bot.say(":x: Only users with ``Manage Channels`` can use this command!")
 
 @bot.command(pass_context=True)
 async def leave(ctx):
